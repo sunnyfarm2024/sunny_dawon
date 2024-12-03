@@ -27,7 +27,7 @@ public class Friend {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private FriendStatus status;
+    private FriendStatus status = FriendStatus.PENDING;
 
     public enum FriendStatus {
         PENDING,

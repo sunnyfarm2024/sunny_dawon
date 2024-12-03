@@ -23,9 +23,8 @@ public class Inventory {
 
     @Column(name = "slot_number", nullable = false)
     private int slotNumber;
-    // 1 ~ 15 범위 제한 서비스에서 처리하기
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id", nullable = false)
+    @JoinColumn(name = "item_id")
     private Shop item;
 }

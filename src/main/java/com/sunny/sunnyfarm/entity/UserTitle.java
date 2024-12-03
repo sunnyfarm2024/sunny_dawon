@@ -26,11 +26,11 @@ public class UserTitle {
     private Title title;
 
     @Column(name = "title_progress", nullable = false)
-    private int titleProgress;
+    private int titleProgress = 0;
 
     @Column(name = "is_title_completed", nullable = false)
-    private boolean isTitleCompleted;
+    private boolean isTitleCompleted = false;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private boolean isActive = false;
 }

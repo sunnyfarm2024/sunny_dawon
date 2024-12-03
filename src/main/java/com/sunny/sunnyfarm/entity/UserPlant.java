@@ -36,19 +36,19 @@ public class UserPlant {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "growth_stage", nullable = false)
-    private GrowthStage growthStage;
+    private GrowthStage growthStage = GrowthStage.ONE;
 
     @Column(name = "growth_progress", nullable = false)
-    private float growthProgress;
+    private float growthProgress = 0;
 
     @Column(name = "sunlight_hours", nullable = false)
-    private float sunlightHours;
+    private float sunlightHours = 0;
 
     @Column(name = "water_level", nullable = false)
-    private int waterLevel;
+    private int waterLevel = 5;
 
     @Column(name = "lives_left", nullable = false)
-    private int livesLeft;
+    private int livesLeft = 3;
 
     @Column(name = "last_watered_at", nullable = false)
     private LocalDateTime lastWateredAt;
@@ -57,17 +57,17 @@ public class UserPlant {
     private LocalDateTime fertilizerEndsAt;
 
     public enum Difficulty {
-        ONE(1),
-        TWO(2),
-        THREE(3);
+        ONE("1"),
+        TWO("2"),
+        THREE("3");
 
-        private final int value;
+        private final String value;
 
-        Difficulty(int value) {
+        Difficulty(String value) {
             this.value = value;
         }
 
-        public int getValue() {
+        public String getValue() {
             return value;
         }
     }
@@ -76,7 +76,7 @@ public class UserPlant {
         ONE("1"),
         TWO("2"),
         THREE("3"),
-        MAX("Max");
+        MAX("MAX");
 
         private final String value;
 

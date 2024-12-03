@@ -34,6 +34,18 @@ public class Plant {
     @Column(name = "plant_description", columnDefinition = "TEXT")
     private String plantDescription;
 
+    @Column(name = "level1_image")
+    private String level1Image;
+
+    @Column(name = "level2_image")
+    private String level2Image;
+
+    @Column(name = "level3_image")
+    private String level3Image;
+
+    @Column(name = "max_image")
+    private String maxImage;
+
     public enum Difficulty {
         ONE(1),
         TWO(2),

@@ -26,8 +26,8 @@ public class UserQuest {
     private Quest quest;
 
     @Column(name = "quest_progress", nullable = false)
-    private int questProgress;
+    private int questProgress = 0;
 
     @Column(name = "is_quest_completed", nullable = false)
-    private boolean isQuestCompleted;
+    private boolean isQuestCompleted = false;
 }
