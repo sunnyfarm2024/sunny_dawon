@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,11 +19,9 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)   // CSRF 비활성화
                 .formLogin(AbstractHttpConfigurer::disable) // 기본 로그인 폼 비활성화
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/user/register", "/user/check-email", "/user/login").permitAll()  // 회원가입과 로그인은 인증 없이 접근 가능
-                        .anyRequest().authenticated()  // 그 외의 모든 요청은 인증 필요
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS) // 세션 항상 생성
                 );
-
         return http.build();
     }
 

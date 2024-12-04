@@ -1,15 +1,14 @@
 package com.sunny.sunnyfarm.service.impl;
 
+import com.sunny.sunnyfarm.dto.UserDto;
 import com.sunny.sunnyfarm.dto.UserLoginDto;
 import com.sunny.sunnyfarm.entity.*;
 import com.sunny.sunnyfarm.repository.*;
-import com.sunny.sunnyfarm.service.RegistrationResult;
+import com.sunny.sunnyfarm.service.CheckResult;
 import com.sunny.sunnyfarm.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -24,9 +23,20 @@ public class UserServiceImpl implements UserService {
     private final TitleRepository titleRepository;
     private final UserTitleRepository userTitleRepository;
 
+    // user_id
+    public Integer getUserIdByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+        return user.getUserId();
+    }
+
     // 이메일 중복 체크
     public boolean checkEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    // 닉네임 중복 체크
+    public boolean checkUserName(String userName) {
+        return userRepository.findByUserName(userName).isPresent();
     }
 
     // 비밀번호 암호화
@@ -35,9 +45,9 @@ public class UserServiceImpl implements UserService {
     }
 
     // 회원가입
-    public RegistrationResult register(UserLoginDto userLoginDto) {
+    public CheckResult register(UserLoginDto userLoginDto) {
         if (checkEmail(userLoginDto.getEmail())) {
-            return RegistrationResult.DUPLICATE_EMAIL;
+            return CheckResult.DUPLICATE;
         }
 
         String encryptedPassword = encryptPassword(userLoginDto.getPassword());
@@ -46,15 +56,15 @@ public class UserServiceImpl implements UserService {
         newUser.setEmail(userLoginDto.getEmail());
         newUser.setPassword(encryptedPassword);
 
-        User userId = userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
 
         Farm newFarm = new Farm();
-        newFarm.setUser(userId);
+        newFarm.setUser(savedUser);
         farmRepository.save(newFarm);
 
         for (int i = 1; i <= 15; i++) {
             Inventory inventorySlot = new Inventory();
-            inventorySlot.setUser(userId);
+            inventorySlot.setUser(savedUser);
             inventorySlot.setSlotNumber(i);
             inventoryRepository.save(inventorySlot);
         }
@@ -66,7 +76,7 @@ public class UserServiceImpl implements UserService {
                     .orElseThrow(() -> new IllegalArgumentException("QuestID:" + questId + "를 찾을 수 없습니다."));
 
             UserQuest userQuest = new UserQuest();
-            userQuest.setUser(userId);
+            userQuest.setUser(savedUser);
             userQuest.setQuest(quest);
             userQuestRepository.save(userQuest);
         }
@@ -78,24 +88,66 @@ public class UserServiceImpl implements UserService {
                     .orElseThrow(() -> new IllegalArgumentException("TitleID:" + titleId + "를 찾을 수 없습니다."));
 
             UserTitle userTitle = new UserTitle();
-            userTitle.setUser(userId);
+            userTitle.setUser(savedUser);
             userTitle.setTitle(title);
             userTitleRepository.save(userTitle);
         }
 
-        return RegistrationResult.SUCCESS;
+        Integer userId = savedUser.getUserId();
+        Integer titleId = 8;  // 타이틀 ID는 8로 고정
+        userTitleRepository.updateTitleStatus(userId, titleId);
+
+        UserTitle userTitle = userTitleRepository.findByUserIdAndTitleId(userId, titleId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 타이틀을 찾을 수 없습니다."));
+
+        userRepository.updateSelectedTitleId(userId, userTitle.getUserTitleId());
+
+        return CheckResult.SUCCESS;
     }
 
     // 로그인
-    public boolean login(UserLoginDto userLoginDto) {
+    public UserDto login(UserLoginDto userLoginDto) {
         User user = userRepository.findByEmail(userLoginDto.getEmail()).orElse(null);
 
         if (user != null && passwordEncoder.matches(userLoginDto.getPassword(), user.getPassword())) {
-            return true;
+            String userName = user.getUserName();
+
+            Float latitude = userLoginDto.getLatitude();
+            Float longitude = userLoginDto.getLongitude();
+            saveUserLocation(user, latitude, longitude);
+
+            return new UserDto(true, userName);
         }
 
-        return false;
+        return new UserDto(false, null);
     }
+
+    // 위치 정보 저장
+    private void saveUserLocation(User user, Float latitude, Float longitude) {
+        if (latitude != null && longitude != null) {
+            user.setLatitude(latitude);
+            user.setLongitude(longitude);
+            userRepository.save(user);
+        }
+    }
+
+    // 닉네임 수정
+    public CheckResult updateUserName(int userId, String userName) {
+        if(checkUserName(userName)){
+            return CheckResult.DUPLICATE;
+        }
+
+        User user = userRepository.findById(userId).orElse(null);
+        if (user != null){
+            user.setUserName(userName);
+            userRepository.save(user);
+            return CheckResult.SUCCESS;
+        }
+
+        return CheckResult.FAIL;
+    }
+
+
 
 //    // 구글로 로그인
 //    public User googleLogin(String email) {

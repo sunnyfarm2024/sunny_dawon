@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserLoginDto {
-    private String email;
-    private String password;
-    private Float latitude;
-    private Float longitude;
+public class UserDto {
+    private boolean success;
+    private String username;
 }
