@@ -22,11 +22,25 @@ public class UserServiceImpl implements UserService {
     private final QuestRepository questRepository;
     private final TitleRepository titleRepository;
     private final UserTitleRepository userTitleRepository;
+    private final ShopRepository shopRepository;
 
     // user_id
     public Integer getUserIdByEmail(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("이메일을 찾을 수 없습니다."));
         return user.getUserId();
+    }
+
+    // User Dto
+    public UserDto getUser(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+        return new UserDto(
+                user.getUserName(),
+                user.getProfilePicture(),
+                user.getWaterBalance(),
+                user.getCoinBalance(),
+                user.getDiamondBalance()
+        );
     }
 
     // 이메일 중복 체크
@@ -52,14 +66,18 @@ public class UserServiceImpl implements UserService {
 
         String encryptedPassword = encryptPassword(userLoginDto.getPassword());
 
+        // 기본 데이터 추가 (팜, 인벤토리, 유저퀘스트, 유저 타이틀)
         User newUser = new User();
         newUser.setEmail(userLoginDto.getEmail());
         newUser.setPassword(encryptedPassword);
 
         User savedUser = userRepository.save(newUser);
 
+        Shop sign = shopRepository.findById(12).orElse(null);
+
         Farm newFarm = new Farm();
         newFarm.setUser(savedUser);
+        newFarm.setSign(sign);
         farmRepository.save(newFarm);
 
         for (int i = 1; i <= 15; i++) {
@@ -82,6 +100,7 @@ public class UserServiceImpl implements UserService {
         }
 
         for (int i = 1; i <= 11; i++) {
+
             final int titleId = i;
 
             Title title = titleRepository.findById(i)
@@ -93,37 +112,40 @@ public class UserServiceImpl implements UserService {
             userTitleRepository.save(userTitle);
         }
 
+        // 기본 칭호 설정
+        // is_title_completed, is_active 활성화
         Integer userId = savedUser.getUserId();
         Integer titleId = 8;  // 타이틀 ID는 8로 고정
         userTitleRepository.updateTitleStatus(userId, titleId);
 
+        // 유저 칭호 설정
         UserTitle userTitle = userTitleRepository.findByUserIdAndTitleId(userId, titleId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 타이틀을 찾을 수 없습니다."));
 
-        userRepository.updateSelectedTitleId(userId, userTitle.getUserTitleId());
+        userRepository.updateSelectedTitleId(userId, userTitle);
 
         return CheckResult.SUCCESS;
     }
 
     // 로그인
-    public UserDto login(UserLoginDto userLoginDto) {
+    public CheckResult login(UserLoginDto userLoginDto) {
         User user = userRepository.findByEmail(userLoginDto.getEmail()).orElse(null);
 
         if (user != null && passwordEncoder.matches(userLoginDto.getPassword(), user.getPassword())) {
-            String userName = user.getUserName();
 
+            // 위치 정보 저장
             Float latitude = userLoginDto.getLatitude();
             Float longitude = userLoginDto.getLongitude();
-            saveUserLocation(user, latitude, longitude);
+            saveLocation(user, latitude, longitude);
 
-            return new UserDto(true, userName);
-        }
+            return CheckResult.SUCCESS;
+            }
 
-        return new UserDto(false, null);
+        return CheckResult.FAIL;
     }
 
     // 위치 정보 저장
-    private void saveUserLocation(User user, Float latitude, Float longitude) {
+    private void saveLocation(User user, Float latitude, Float longitude) {
         if (latitude != null && longitude != null) {
             user.setLatitude(latitude);
             user.setLongitude(longitude);

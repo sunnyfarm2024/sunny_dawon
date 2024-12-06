@@ -46,20 +46,13 @@ public class Plant {
     @Column(name = "max_image")
     private String maxImage;
 
+    @Column(name = "dead_image")
+    private String deadImage;
+
     public enum Difficulty {
-        ONE(1),
-        TWO(2),
-        THREE(3);
-
-        private final int value;
-
-        Difficulty(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
+        EASY,
+        MEDIUM,
+        HARD
     }
 
     public enum PlantType {

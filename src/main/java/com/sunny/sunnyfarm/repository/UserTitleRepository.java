@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserTitleRepository extends JpaRepository<UserTitle,Integer> {
-// 성경이 코드 쓰기...
     @Query("SELECT ut FROM UserTitle ut WHERE ut.user.userId = :userId AND ut.title.titleId = :titleId")
     Optional<UserTitle> findByUserIdAndTitleId(@Param("userId") Integer userId, @Param("titleId") Integer titleId);
 

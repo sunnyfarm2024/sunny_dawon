@@ -1,6 +1,7 @@
 package com.sunny.sunnyfarm.repository;
 
 import com.sunny.sunnyfarm.entity.User;
+import com.sunny.sunnyfarm.entity.UserTitle;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -17,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE User u SET u.selectedTitle = :titleId WHERE u.userId = :userId")
-    void updateSelectedTitleId(@Param("userId") Integer userId, @Param("selectedTitle") Integer titleId);
+    @Query("UPDATE User u SET u.selectedTitle = :userTitle WHERE u.userId = :userId")
+    void updateSelectedTitleId(@Param("userId") Integer userId, @Param("userTitle") UserTitle userTitle);
+
 }

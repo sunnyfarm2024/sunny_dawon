@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDto {
-    private boolean success;
-    private String username;
+    private String userName;
+    private String profile;
+    private int waterBalance;
+    private int coinBalance;
+    private int diamondBalance;
 }
